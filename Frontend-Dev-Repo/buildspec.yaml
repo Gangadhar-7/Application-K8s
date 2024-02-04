@@ -1,0 +1,95 @@
+version: 0.2
+
+phases:
+
+  pre_build:
+    commands:
+      - echo logging into dockerhub
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - git clone https://github.com/Gangadhar-7/Frontend-Deployment-Repo.git
+      
+  build:
+    commands:
+      # #trivy install
+      # - apt-get install wget apt-transport-https gnupg
+      # - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
+      # - echo deb https://aquasecurity.github.io/trivy-repo/deb bionic main | tee -a /etc/apt/sources.list.d/trivy.list
+      # - apt-get update
+      # - apt-get install -y trivy
+      
+      - TAG_FROM_MANIFEST=$(grep -oP 'gangadhar0416/frontend:\K[^"]+' Frontend-Deployment-Repo/kubernetes-manifests/frontend-deployment.yaml)
+      - NEW_TAG=$((TAG_FROM_MANIFEST + 1))
+      - sed -i "s@gangadhar0416/frontend:$TAG_FROM_MANIFEST@gangadhar0416/frontend:$NEW_TAG@" Frontend-Deployment-Repo/kubernetes-manifests/frontend-deployment.yaml
+      - docker build -t gangadhar0416/frontend .
+      - docker tag gangadhar0416/frontend gangadhar0416/frontend:$NEW_TAG
+  post_build:
+    commands:
+      - docker push gangadhar0416/frontend:$NEW_TAG
+      
+      - cd Frontend-Deployment-Repo
+      - git config --local user.name "Gangadhar-7"
+      - git config --local user.email "gangadharm877@gmail.com"
+      - git remote set-url origin https://Gangadhar-7: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@github.com/Gangadhar-7/Frontend-Deployment-Repo.git
+
+      - git add kubernetes-manifests/frontend-deployment.yaml
+      - git commit -m "Update environment variable in deployment.yaml"
+      - git push origin main
+      # - trivy --no-progress --exit-code 1 --severity HIGH,CRITICAL --auto-refresh gangadhar0416/frontend:$NEW_TAG
+      -
+artifacts:
+  files: Dockerfile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# version: 0.2
+  
+# phases:
+#   pre_build :
+#     commands:
+#       - echo logging into dockerhub
+#       - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#   build:
+#     commands:
+#       - echo building images
+#       - docker build -t frontend .
+#       - docker tag frontend gangadhar0416/frontend
+#   post_build:
+#     commands:
+#       - echo build completed and pushing the image .
+#       - docker push gangadhar0416/frontend
